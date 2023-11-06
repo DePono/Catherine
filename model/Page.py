@@ -4,6 +4,7 @@ import seaborn as sns
 import plotly.graph_objects as go
 import plotly.express as px
 import numpy as np
+import pandas as pd
 
 from model.ReadData import ReadData
 
@@ -155,3 +156,77 @@ class Page:
                         color='red', label='M', ax=ax)
         plt.tight_layout()
         st.pyplot(fig)
+
+    def page11(self):
+        max_accuracy = max(lst_accu_stratified) * 100
+        min_accuracy = min(lst_accu_stratified) * 100
+        overall_accuracy = np.mean(lst_accu_stratified) * 100
+        std_deviation = np.std(lst_accu_stratified)
+        st.title("Logistic Regression Model Training Results")
+        st.write("Model training results:")
+        st.write("Maximum Accuracy: {} %".format(max_accuracy))
+        st.write("Minimum Accuracy: {} %".format(min_accuracy))
+        st.write("Overall Accuracy: {} %".format(overall_accuracy))
+        st.write("Standard Deviation: {}".format(std_deviation))
+        st.write("\n*Train and Test sets are split")
+        st.write("Train data shape:{}".format(x_train.shape))
+        st.write("Test data shape:{}".format(x_test.shape))
+
+    def page12(self):
+        st.title('page12: oценка производительности нейронной модели на test наборе данных')
+        loss, accuracy = model.evaluate(x_test, y_test, verbose=0)
+        st.write(f"Evaluating the neural network model using {len(x_test)} samples...")
+        st.write(f"Loss: {loss:.4f}")
+        st.write(f"Accuracy: {accuracy * 100:.2f}%")
+
+    def page13(self):
+        st.title('page13: результат бинарных предсказаний')
+        # точность бинарных предсказаний
+        st.write("Overall Accuracy Score is : {}".format(accuracy_score(y_test, predictions)))
+
+    def page14(self):
+        st.title('page14: визуализация производительности двух моделей')
+
+        # График ROC curve
+        plt.figure(1, figsize=(8, 6))
+        plt.plot([0, 1], [0, 1], 'k--')
+        plt.plot(fpr_keras, tpr_keras, label='Keras (area = {:.3f})'.format(auc_keras))
+        plt.plot(fpr_lr, tpr_lr, label='LR (area = {:.3f})'.format(auc_lr))
+        plt.xlabel('False positive rate')
+        plt.ylabel('True positive rate')
+        plt.title('ROC curve')
+        plt.legend(loc='best')
+        st.pyplot(plt)
+
+        # График ROC curve (zoomed in at top left)
+        plt.figure(2, figsize=(8, 6))
+        plt.xlim(0, 0.2)
+        plt.ylim(0.8, 1)
+        plt.plot([0, 1], [0, 1], 'k--')
+        plt.plot(fpr_keras, tpr_keras, label='Keras (area = {:.3f})'.format(auc_keras))
+        plt.plot(fpr_lr, tpr_lr, label='LR (area = {:.3f})'.format(auc_lr))
+        plt.xlabel('False positive rate')
+        plt.ylabel('True positive rate')
+        plt.title('ROC curve (zoomed in at top left)')
+        plt.legend(loc='best')
+        st.pyplot(plt)
+
+    def page15(self):
+        st.title('page15: графики плотности вероятности для двух моделей')
+        plot_pdf(y_pred_keras, y_test, 'Keras')
+        plot_pdf(y_pred_lr, y_test, 'LR')
+
+    def model_testing(self):
+        st.title('testing models: тестирование моделей')
+        uploaded_file = st.file_uploader("загрузите файл данных (CSV)", type=["csv"])
+        model_type = st.radio("выберите тип модели", ["логистическая регрессия", "нейронная сеть"])
+        num_epochs = st.slider("количество эпох обучения (только для нейронной сети)", 1, 100, 10)
+
+        if st.button('выполнить тестирование'):
+            if uploaded_file is not None:
+                data = pd.read_csv(uploaded_file)
+                if model_type == "логистическая регрессия":
+                    page11()
+                elif model_type == "нейронная сеть":
+                    page12()
+                    page13()
